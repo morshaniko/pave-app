@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>pave.io</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200;0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#534AB7;--pl:#EEEDFE;--pm:#AFA9EC;--pd:#3C3489;
+  --g:#1D9E75;--gl:#E1F5EE;--gd:#085041;
+  --a:#BA7517;--al:#FAEEDA;
+  --blue:#1A6BC4;--blue-l:#E8F1FB;
+  --nb:#1A1A18;--wg:#6A6A67;--lg:#AEADA9;
+  --border:rgba(0,0,0,0.07);
+  --cream:#F7F5F0;--cd:#F0EDE8;--white:#FFFFFF;
+  --serif:'Newsreader',Georgia,serif;
+  --sans:'DM Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--sans);background:var(--white);color:var(--nb);-webkit-font-smoothing:antialiased}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;background:var(--white)}
+.screen.active{display:flex;animation:fi 0.22s ease}
+.ob-screen{background:var(--cream)}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* SIDEBAR */
+.sidebar{position:fixed;inset:0;z-index:200;pointer-events:none;opacity:0;transition:opacity 0.22s}
+.sidebar.open{pointer-events:all;opacity:1}
+.sb-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.25);backdrop-filter:blur(2px)}
+.sb-panel{position:absolute;left:0;top:0;bottom:0;width:80%;max-width:290px;background:var(--white);display:flex;flex-direction:column;transform:translateX(-100%);transition:transform 0.28s cubic-bezier(0.16,1,0.3,1);box-shadow:6px 0 32px rgba(0,0,0,0.1)}
+.sidebar.open .sb-panel{transform:translateX(0)}
+.sb-x{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;background:var(--cd);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--wg);cursor:pointer;z-index:1}
+.sb-top{padding:52px 20px 14px;border-bottom:0.5px solid var(--border)}
+.sb-logo{font-family:var(--serif);font-size:17px;font-weight:300;letter-spacing:3px;color:var(--nb);margin-bottom:12px}
+.sb-logo .io{color:var(--p);font-size:9px;vertical-align:super}
+.sb-user-row{display:flex;align-items:center;gap:10px}
+.sb-av{width:34px;height:34px;border-radius:50%;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--p);flex-shrink:0}
+.sb-name{font-size:13px;font-weight:500;color:var(--nb)}
+.sb-stage-txt{font-size:11px;color:var(--wg);margin-top:1px}
+.sb-prog-wrap{padding:12px 20px;border-bottom:0.5px solid var(--border)}
+.sb-prog-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--lg);margin-bottom:4px}
+.sb-prog-track{height:2px;background:var(--border);border-radius:2px;overflow:hidden}
+.sb-prog-fill{height:100%;width:18%;background:var(--p);border-radius:2px}
+.sb-myarea{background:var(--cd);border-radius:10px;padding:12px;margin:10px;cursor:pointer}
+.sb-myarea-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--lg);font-weight:500;margin-bottom:6px}
+.sb-myarea-name{font-size:13px;font-weight:500;color:var(--nb);margin-bottom:1px}
+.sb-myarea-sub{font-size:11px;color:var(--wg)}
+.sb-myarea-bar{height:2px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden;margin-top:9px}
+.sb-myarea-fill{height:100%;width:18%;background:var(--p);border-radius:2px}
+.sb-section-lbl{padding:8px 20px 4px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--lg);font-weight:500}
+.sb-nav{flex:1;overflow-y:auto;padding:4px 10px}
+.sb-ni{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--wg);margin-bottom:1px;transition:all 0.15s}
+.sb-ni:active{background:var(--cd)}
+.sb-ni.act{background:var(--pl);color:var(--pd);font-weight:500}
+.sb-ni svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;opacity:0.65}
+.sb-ni.act svg{opacity:1}
+.sb-ni-badge{margin-left:auto;font-size:10px;padding:1px 7px;border-radius:20px;background:var(--pl);color:var(--p)}
+.sb-foot{padding:10px 20px 34px;border-top:0.5px solid var(--border)}
+.sb-foot-item{font-size:12px;color:var(--lg);padding:6px 0;cursor:pointer}
+
+/* ONBOARDING */
+.ob-top{padding:52px 22px 0;flex:1;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:6px}
+.ob-progress{display:flex;gap:4px;margin-bottom:26px;flex-shrink:0}
+.ob-prog-dot{flex:1;height:2px;border-radius:2px;background:var(--border);transition:background 0.3s}
+.ob-prog-dot.done{background:var(--p)}.ob-prog-dot.act{background:var(--pm)}
+.ob-back{width:32px;height:32px;border-radius:50%;border:0.5px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:18px;flex-shrink:0}
+.ob-back svg{width:12px;height:12px;stroke:var(--nb);fill:none;stroke-width:1.5;stroke-linecap:round}
+.ob-q{font-family:var(--serif);font-size:26px;font-weight:300;color:var(--nb);line-height:1.2;margin-bottom:5px;flex-shrink:0}
+.ob-hint{font-size:12px;color:var(--lg);margin-bottom:18px;font-weight:300;flex-shrink:0}
+.ob-opts{display:flex;flex-direction:column;gap:7px}
+.ob-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--white);border:1px solid var(--border);border-radius:11px;cursor:pointer;transition:all 0.15s}
+.ob-opt:active{transform:scale(0.99)}
+.ob-opt.sel{border-color:var(--p);background:var(--pl)}
+.ob-mk{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.ob-opt.sel .ob-mk{background:var(--p);border-color:var(--p)}
+.ob-mk-dot{width:6px;height:6px;border-radius:50%;background:white;opacity:0;transition:opacity 0.15s}
+.ob-opt.sel .ob-mk-dot{opacity:1}
+.ob-lbl{font-size:14px;font-weight:500;color:var(--nb)}
+.ob-opt.sel .ob-lbl{color:var(--pd)}
+.ob-desc{font-size:11px;color:var(--lg);margin-top:1px;font-weight:300}
+.ob-bot{padding:12px 22px 36px;flex-shrink:0;background:var(--cream)}
+.ob-btn{width:100%;padding:15px;background:var(--nb);color:white;border:none;border-radius:100px;font-family:var(--sans);font-size:15px;font-weight:400;cursor:pointer;transition:all 0.15s}
+.ob-btn:active{transform:scale(0.98)}.ob-btn.pu{background:var(--p)}
+
+/* REVEAL */
+.reveal-inner{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;text-align:center;overflow-y:auto}
+.rv-ico{width:58px;height:58px;border-radius:50%;background:var(--pl);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:var(--serif);font-size:22px;color:var(--p)}
+.rv-title{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--nb);margin-bottom:5px;line-height:1.2}
+.rv-sub{font-size:13px;color:var(--wg);margin-bottom:22px;font-weight:300}
+.rv-phases{width:100%;display:flex;flex-direction:column;gap:6px;margin-bottom:22px;text-align:left}
+.rv-phase{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--white);border:0.5px solid var(--border);border-radius:10px}
+.rp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.rp-dot.act{background:var(--p)}.rp-dot.soon{background:rgba(0,0,0,0.12)}
+.rp-lbl{font-size:13px;font-weight:500;color:var(--nb)}.rp-sub{font-size:11px;color:var(--lg);margin-top:1px}
+.rp-badge{margin-left:auto;font-size:10px;padding:2px 7px;border-radius:20px;flex-shrink:0}
+.rpb-act{background:var(--pl);color:var(--p)}.rpb-soon{background:var(--cd);color:var(--lg)}
+
+/* APP NAV */
+.app-nav{display:flex;align-items:center;justify-content:space-between;padding:50px 20px 10px;flex-shrink:0}
+.burger{width:30px;height:30px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;cursor:pointer}
+.burger span{width:16px;height:1.5px;background:var(--nb);border-radius:2px;display:block}
+.app-logo{font-family:var(--serif);font-size:15px;font-weight:300;letter-spacing:3px;color:var(--nb)}
+.app-logo .io{color:var(--p);font-size:8px;vertical-align:super;letter-spacing:1px}
+.app-av{width:28px;height:28px;border-radius:50%;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--p)}
+
+/* HOME */
+.app-body{flex:1;overflow-y:auto;padding:0 20px 90px}
+.home-greeting{font-family:var(--serif);font-size:30px;font-weight:300;color:var(--nb);line-height:1.2;margin-bottom:4px}
+.home-greeting em{font-style:italic;color:var(--wg)}
+.stage-pill{display:inline-flex;align-items:center;gap:5px;background:var(--cd);border-radius:100px;padding:4px 10px;font-size:11px;color:var(--wg);margin-bottom:16px}
+.stage-dot{width:5px;height:5px;border-radius:50%;background:var(--p)}
+
+/* AI BOX */
+.ai-box{background:var(--cd);border-radius:14px;padding:13px;margin-bottom:0}
+.ai-inp{width:100%;border:none;background:transparent;font-family:var(--sans);font-size:14px;color:var(--nb);outline:none;resize:none;min-height:46px;line-height:1.5;cursor:text}
+.ai-inp::placeholder{color:var(--lg)}
+.ai-foot{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
+.ai-icons{display:flex;gap:5px}
+.ai-ico{width:25px;height:25px;border-radius:7px;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.ai-ico svg{width:11px;height:11px;stroke:var(--wg);fill:none;stroke-width:1.5;stroke-linecap:round}
+.ai-snd{width:27px;height:27px;border-radius:50%;background:var(--nb);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.ai-snd:active{background:var(--p)}
+.ai-snd svg{width:10px;height:10px;stroke:white;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* BLUE BANNER */
+.insight-banner{background:var(--blue-l);border-radius:0 0 13px 13px;padding:10px 13px;margin-bottom:14px;display:flex;gap:9px;align-items:flex-start;cursor:pointer}
+.insight-ico{width:26px;height:26px;border-radius:7px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.insight-ico svg{width:12px;height:12px;stroke:white;fill:none;stroke-width:1.5;stroke-linecap:round}
+.insight-lbl{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);font-weight:500;margin-bottom:2px}
+.insight-msg{font-size:12px;color:var(--nb);line-height:1.5;font-weight:300}
+.insight-msg strong{font-weight:500}
+.insight-action{font-size:11px;color:var(--blue);font-weight:500;margin-top:3px}
+
+/* PILLS */
+.sec-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--lg);font-weight:500;margin-bottom:8px}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:18px}
+.action-pill{display:flex;align-items:center;gap:7px;padding:10px 12px;background:var(--cd);border-radius:100px;font-size:12px;color:var(--nb);cursor:pointer;transition:all 0.15s}
+.action-pill:active{background:var(--pl);transform:scale(0.97)}
+.action-pill svg{width:13px;height:13px;flex-shrink:0;stroke:var(--wg);fill:none;stroke-width:1.5;stroke-linecap:round}
+.action-pill span{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* TABS */
+.tabs{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.96);backdrop-filter:blur(14px);border-top:0.5px solid var(--border);display:flex;padding:6px 0 24px;z-index:50}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
+.tab svg{width:19px;height:19px;stroke:var(--lg);fill:none;stroke-width:1.4;stroke-linecap:round;transition:stroke 0.15s}
+.tab-lbl{font-size:9px;color:var(--lg);transition:color 0.15s}
+.tab.act svg{stroke:var(--p)}.tab.act .tab-lbl{color:var(--p);font-weight:500}
+
+/* SUB NAV */
+.sub-nav{display:flex;align-items:center;gap:10px;padding:50px 20px 10px;flex-shrink:0}
+.back-btn{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.back-btn svg{width:13px;height:13px;stroke:var(--nb);fill:none;stroke-width:1.5;stroke-linecap:round}
+.sub-ttl{font-family:var(--serif);font-size:19px;font-weight:300;color:var(--nb)}
+.sub-body{flex:1;overflow-y:auto;padding:0 20px 90px}
+
+/* FERTILITY */
+.fert-header{background:var(--pl);border-radius:12px;padding:14px;margin-bottom:12px}
+.fh-badge{display:inline-block;font-size:10px;background:var(--p);color:white;padding:2px 9px;border-radius:20px;margin-bottom:7px}
+.fh-title{font-family:var(--serif);font-size:17px;font-weight:300;color:var(--nb);margin-bottom:2px}
+.fh-sub{font-size:12px;color:var(--wg)}
+.fh-progress{display:flex;gap:3px;margin-top:10px}
+.fh-dot{flex:1;height:2px;border-radius:2px;background:rgba(83,74,183,0.15)}
+.fh-dot.done{background:var(--p)}
+
+.upload-card{background:var(--white);border:1.5px dashed var(--pm);border-radius:12px;padding:18px;margin-bottom:11px;text-align:center;cursor:pointer;transition:all 0.15s}
+.upload-card:active{background:var(--pl)}
+.uc-ico{width:40px;height:40px;border-radius:10px;background:var(--pl);display:flex;align-items:center;justify-content:center;margin:0 auto 9px}
+.uc-ico svg{width:18px;height:18px;stroke:var(--p);fill:none;stroke-width:1.5;stroke-linecap:round}
+.uc-title{font-size:14px;font-weight:500;color:var(--nb);margin-bottom:3px}
+.uc-sub{font-size:12px;color:var(--wg);line-height:1.5}
+.uc-badge{display:inline-block;margin-top:7px;font-size:11px;color:var(--p);background:var(--pl);padding:3px 10px;border-radius:20px;font-weight:500}
+
+.analysis-result{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:11px;display:none}
+.analysis-result.show{display:block;animation:fi 0.3s ease}
+.ar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ar-title{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--nb)}
+.ar-date{font-size:11px;color:var(--lg)}
+.ar-params{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.ar-param{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;background:var(--cd)}
+.ar-param.good{background:var(--gl)}.ar-param.warn{background:#FEF9EC}.ar-param.bad{background:#FEECEC}
+.ar-param-name{font-size:12px;color:var(--wg);flex:1}
+.ar-param-val{font-family:var(--serif);font-size:13px;color:var(--nb)}
+.ar-param-ref{font-size:10px;color:var(--lg);margin-left:4px}
+.ar-param-status{font-size:13px;flex-shrink:0}
+.ar-insight{background:var(--blue-l);border-radius:9px;padding:11px;margin-bottom:11px}
+.ar-insight-lbl{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);font-weight:500;margin-bottom:4px}
+.ar-insight-text{font-size:12px;color:var(--nb);line-height:1.6;font-weight:300}
+.ar-protocol-btn{width:100%;padding:12px;background:var(--p);color:white;border:none;border-radius:100px;font-family:var(--sans);font-size:13px;cursor:pointer}
+
+.protocol-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:11px;display:none}
+.protocol-card.show{display:block;animation:fi 0.3s ease}
+.proto-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.proto-title{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--nb)}
+.proto-days{font-size:11px;color:var(--p);background:var(--pl);padding:2px 9px;border-radius:20px}
+.proto-sec{margin-bottom:12px}
+.proto-sec-lbl{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--lg);font-weight:500;margin-bottom:7px}
+.proto-task{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;cursor:pointer}
+.pt-chk{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;background:white;transition:all 0.15s}
+.pt-chk.done{background:var(--g);border-color:var(--g)}
+.pt-chk.done::after{content:'✓';color:white;font-size:8px;line-height:1}
+.pt-text{font-size:13px;color:var(--nb);line-height:1.4;flex:1}
+.pt-text.done{text-decoration:line-through;color:var(--lg)}
+.pt-why{font-size:10px;color:var(--p);margin-top:1px}
+
+.comparison-card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:11px;display:none}
+.comparison-card.show{display:block;animation:fi 0.3s ease}
+.comp-title{font-family:var(--serif);font-size:15px;font-weight:400;color:var(--nb);margin-bottom:12px}
+.comp-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;padding:7px 9px;background:var(--cd);border-radius:7px}
+.comp-param{font-size:11px;color:var(--wg);flex:1}
+.comp-t1{font-size:12px;color:var(--nb);font-family:var(--serif);width:44px;text-align:center}
+.comp-arrow{font-size:11px;color:var(--lg)}
+.comp-t2{font-size:12px;font-weight:500;font-family:var(--serif);width:44px;text-align:center}
+.comp-t2.up{color:var(--g)}
+.comp-change{font-size:10px;padding:2px 5px;border-radius:20px;background:var(--gl);color:var(--gd);flex-shrink:0}
+.comp-banner{background:var(--gl);border-radius:9px;padding:12px;margin-top:10px;text-align:center}
+.comp-banner-title{font-family:var(--serif);font-size:17px;font-weight:300;color:var(--gd);margin-bottom:2px}
+.comp-banner-sub{font-size:11px;color:var(--gd);opacity:0.8}
+
+.tasks-section{background:var(--cd);border-radius:12px;padding:13px;margin-bottom:11px}
+.ts-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ts-title{font-size:13px;font-weight:500;color:var(--nb)}.ts-count{font-size:11px;color:var(--wg)}
+.task-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;cursor:pointer}
+.task-item:last-child{margin-bottom:0}
+.tk-chk{width:16px;height:16px;border-radius:4px;border:1.5px solid rgba(0,0,0,0.15);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;background:white;transition:all 0.15s}
+.tk-chk.done{background:var(--g);border-color:var(--g)}
+.tk-chk.done::after{content:'✓';color:white;font-size:8px}
+.tk-chk.cur{border-color:var(--p)}
+.tk-text{font-size:12px;color:var(--nb);line-height:1.4;flex:1}
+.tk-text.done{text-decoration:line-through;color:var(--lg)}
+.tk-sub{font-size:10px;color:var(--lg);margin-top:1px}
+.tk-urgent{font-size:10px;background:#FEECEC;color:#A32D2D;padding:2px 6px;border-radius:20px;margin-left:auto;flex-shrink:0}
+
+/* Roadmap */
+.journey-card{background:var(--cd);border-radius:11px;padding:13px;margin-bottom:11px}
+.jc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.jc-lbl{font-size:12px;color:var(--wg);font-weight:500}
+.jc-ph{font-size:11px;color:var(--p);background:var(--pl);padding:2px 8px;border-radius:20px}
+.jc-bar{height:3px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden;margin-bottom:7px}
+.jc-bar-fill{height:100%;background:linear-gradient(90deg,var(--p),var(--pm));border-radius:2px;width:18%}
+.jc-stats{display:flex;gap:12px}
+.jc-stat{font-size:11px;color:var(--wg)}.jc-stat strong{color:var(--nb);font-weight:500}
+
+.phase-item{margin-bottom:6px}
+.ph-head{display:flex;align-items:center;gap:9px;padding:11px;background:var(--cd);border-radius:11px;cursor:pointer}
+.ph-head.is-open{border-radius:11px 11px 0 0}
+.ph-head.is-act{background:var(--pl);border:0.5px solid var(--pm)}
+.ph-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:12px;flex-shrink:0}
+.pn-done{background:var(--gl);color:var(--gd)}.pn-act{background:var(--pl);color:var(--pd)}.pn-soon{background:rgba(0,0,0,0.05);color:var(--lg)}
+.ph-info{flex:1}
+.ph-name{font-size:13px;font-weight:500;color:var(--nb)}
+.ph-meta{font-size:10px;color:var(--lg);margin-top:1px}
+.ph-badge{font-size:10px;padding:2px 6px;border-radius:20px;flex-shrink:0}
+.phb-done{background:var(--gl);color:var(--gd)}.phb-act{background:var(--pl);color:var(--p)}.phb-soon{background:rgba(0,0,0,0.05);color:var(--lg)}
+.ph-chev{font-size:10px;color:var(--lg);transition:transform 0.2s;flex-shrink:0}
+.ph-chev.open{transform:rotate(180deg)}
+.ph-body{background:var(--cd);border-radius:0 0 11px 11px;padding:11px;display:none}
+.ph-body.is-act{background:var(--pl)}.ph-body.open{display:block}
+.task-list{display:flex;flex-direction:column;gap:6px;margin-bottom:9px}
+.task{display:flex;align-items:flex-start;gap:8px;cursor:pointer}
+.chk{width:15px;height:15px;border-radius:4px;border:1.5px solid rgba(0,0,0,0.15);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;background:white;transition:all 0.15s}
+.chk.done{background:var(--g);border-color:var(--g)}
+.chk.done::after{content:'✓';color:white;font-size:8px;line-height:1}
+.chk.cur{border-color:var(--p)}
+.task-txt{font-size:12px;color:var(--nb);line-height:1.4}
+.task-txt.done{text-decoration:line-through;color:var(--lg)}
+.task-sub-txt{font-size:10px;color:var(--lg);margin-top:1px}
+.ph-cost{display:flex;justify-content:space-between;padding:7px 9px;background:rgba(0,0,0,0.04);border-radius:6px;font-size:11px;margin-bottom:6px}
+.ph-cost-lbl{color:var(--wg)}.ph-cost-val{font-family:var(--serif);color:var(--nb)}
+.peer-note{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--wg);padding:6px 9px;background:white;border-radius:6px}
+.pdot{width:4px;height:4px;border-radius:50%;background:var(--g);flex-shrink:0}
+
+/* Budget */
+.bud-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px}
+.bud-stat{background:var(--cd);border-radius:10px;padding:11px;text-align:center}
+.bud-num{font-family:var(--serif);font-size:19px;font-weight:300;color:var(--nb);line-height:1;margin-bottom:2px}
+.bud-num.p{color:var(--p)}.bud-lbl{font-size:10px;color:var(--lg)}
+.bar-card{background:var(--cd);border-radius:11px;padding:13px;margin-bottom:11px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bar-row:last-child{margin-bottom:0}
+.brl{font-size:11px;color:var(--wg);width:100px;flex-shrink:0}
+.brt{flex:1;height:3px;background:rgba(0,0,0,0.08);border-radius:2px;overflow:hidden}
+.brf{height:100%;border-radius:2px}.brf-s{background:var(--p)}.brf-e{background:var(--pm);opacity:0.5}
+.brv{font-size:11px;color:var(--nb);font-weight:500;width:55px;text-align:right;flex-shrink:0;font-family:var(--serif)}
+
+/* Team */
+.tm-section{margin-bottom:16px}
+.tm-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tm-title{font-family:var(--serif);font-size:14px;font-weight:300;color:var(--nb)}
+.tm-add{font-size:12px;color:var(--p);cursor:pointer}
+.tm-list{display:flex;flex-direction:column;gap:6px}
+.person{display:flex;align-items:center;gap:9px;padding:11px;background:var(--cd);border-radius:11px;cursor:pointer}
+.p-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;position:relative}
+.av-bl{background:#E6F1FB;color:#0C447C}.av-pu{background:var(--pl);color:var(--pd)}.av-gr{background:var(--gl);color:var(--gd)}.av-am{background:var(--al);color:var(--a)}
+.p-online{position:absolute;bottom:0;right:0;width:7px;height:7px;border-radius:50%;background:var(--g);border:2px solid var(--cd)}
+.p-name{font-size:12px;font-weight:500;color:var(--nb)}
+.p-role{font-size:10px;color:var(--lg);margin-top:1px}
+.p-spoke{font-size:10px;color:var(--lg);margin-left:auto}
+
+/* Chat */
+.chat-msgs{flex:1;overflow-y:auto;padding:12px 20px;display:flex;flex-direction:column;gap:10px}
+.msg{display:flex;gap:7px}.msg.usr{flex-direction:row-reverse}
+.msg-av{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;margin-top:2px}
+.mav-p{background:var(--p);color:white;font-family:var(--serif);font-size:9px}
+.mav-u{background:var(--cd);color:var(--wg)}
+.msg-bub{max-width:78%;padding:8px 12px;font-size:13px;line-height:1.6;border-radius:4px 12px 12px 12px;background:var(--cd);color:var(--nb)}
+.msg-bub.usr{background:var(--p);color:white;border-radius:12px 4px 12px 12px}
+.chat-bot{padding:9px 16px 30px;border-top:0.5px solid var(--border);display:flex;gap:7px;flex-shrink:0}
+.chat-inp{flex:1;padding:9px 13px;border:0.5px solid var(--border);border-radius:100px;font-size:14px;font-family:var(--sans);background:var(--cd);color:var(--nb);outline:none}
+.chat-inp:focus{background:white;border-color:var(--pm)}
+.chat-snd{width:32px;height:32px;background:var(--p);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-snd svg{width:11px;height:11px;stroke:white;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+.loading-dots{display:inline-flex;gap:4px;align-items:center}
+.loading-dots span{width:5px;height:5px;border-radius:50%;background:var(--lg);animation:pulse 1.2s infinite}
+.loading-dots span:nth-child(2){animation-delay:0.2s}
+.loading-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes pulse{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1)}}
+
+/* TASK SWIPE/EDIT */
+.task-item{position:relative;overflow:hidden;border-radius:8px;transition:background 0.15s}
+.task-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;gap:0;transform:translateX(100%);transition:transform 0.2s ease}
+.task-item.swiped .task-actions{transform:translateX(0)}
+.task-item.swiped{padding-right:88px}
+.ta-edit{width:42px;height:100%;background:#E8F1FB;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
+.ta-del{width:44px;height:100%;background:#FEECEC;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px}
+.task-edit-inp{display:none;width:100%;border:none;background:var(--pl);font-family:var(--sans);font-size:12px;color:var(--nb);outline:none;padding:2px 0;border-bottom:1px solid var(--pm)}
+.task-item.editing .task-edit-inp{display:block}
+.task-item.editing .tk-text{display:none}
+.task-add-btn{display:flex;align-items:center;gap:7px;padding:9px 11px;background:transparent;border:1px dashed var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--lg);width:100%;margin-top:4px;transition:all 0.15s}
+.task-add-btn:active{background:var(--pl);border-color:var(--pm);color:var(--p)}
+.add-task-inp{display:none;width:100%;border:none;background:var(--pl);border-radius:8px;padding:9px 11px;font-family:var(--sans);font-size:12px;color:var(--nb);outline:none;margin-top:4px;border:1px solid var(--pm)}
+
+/* FILES */
+.file-item{display:flex;align-items:center;gap:10px;padding:11px;background:var(--cd);border-radius:11px;margin-bottom:7px;cursor:pointer;transition:all 0.15s}
+.file-item:active{transform:scale(0.98)}
+.fi-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0}
+.fi-pdf{background:#FEECEC;color:#A32D2D}
+.fi-img{background:var(--gl);color:var(--gd)}
+.fi-doc{background:#E8F1FB;color:#0C447C}
+.fi-name{font-size:13px;font-weight:500;color:var(--nb)}
+.fi-meta{font-size:11px;color:var(--lg);margin-top:1px}
+.fi-badge{margin-left:auto;font-size:10px;padding:2px 7px;border-radius:20px;flex-shrink:0}
+.fi-badge.new{background:var(--pl);color:var(--p)}
+.fi-badge.done{background:var(--gl);color:var(--gd)}
+.upload-area{border:1.5px dashed var(--border);border-radius:11px;padding:20px;text-align:center;cursor:pointer;margin-bottom:14px;transition:all 0.15s}
+.upload-area:active{background:var(--pl);border-color:var(--pm)}
+.upload-area-ico{font-size:24px;margin-bottom:6px}
+.upload-area-lbl{font-size:13px;font-weight:500;color:var(--nb);margin-bottom:2px}
+.upload-area-sub{font-size:11px;color:var(--lg)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sb-overlay" onclick="closeSb()"></div>
+  <div class="sb-panel">
+    <div class="sb-x" onclick="closeSb()">✕</div>
+    <div class="sb-top">
+      <div class="sb-logo">pave<span class="io">.io</span></div>
+      <div class="sb-user-row">
+        <div class="sb-av">MO</div>
+        <div><div class="sb-name">mor shani</div><div class="sb-stage-txt">phase 1 · fertility testing</div></div>
+      </div>
+    </div>
+    <div class="sb-prog-wrap">
+      <div class="sb-prog-labels"><span>journey progress</span><span>18%</span></div>
+      <div class="sb-prog-track"><div class="sb-prog-fill"></div></div>
+    </div>
+    <div class="sb-myarea" onclick="go('s-home');closeSb()">
+      <div class="sb-myarea-lbl">my area</div>
+      <div class="sb-myarea-name">mor · solo dad · israel</div>
+      <div class="sb-myarea-sub">fertility testing · ichilov clinic</div>
+      <div class="sb-myarea-bar"><div class="sb-myarea-fill"></div></div>
+    </div>
+    <div class="sb-section-lbl">navigate</div>
+    <div class="sb-nav">
+      <div class="sb-ni act" onclick="go('s-home');closeSb()"><svg viewBox="0 0 18 18"><path d="M2 9L9 3l7 6"/><path d="M4 8v7h3v-3h4v3h3V8"/></svg>home</div>
+      <div class="sb-ni" onclick="go('s-fertility');closeSb()"><svg viewBox="0 0 18 18"><path d="M9 2C6.2 2 4 4.2 4 7c0 4 5 9 5 9s5-5 5-9c0-2.8-2.2-5-5-5z"/><circle cx="9" cy="7" r="2"/></svg>fertility stage<div class="sb-ni-badge">active</div></div>
+      <div class="sb-ni" onclick="go('s-roadmap');closeSb()"><svg viewBox="0 0 18 18"><path d="M2 13L5.5 7l3.5 2.5L13 3l3 3.5"/></svg>roadmap</div>
+      <div class="sb-ni" onclick="go('s-tasks');closeSb()"><svg viewBox="0 0 18 18"><path d="M3 4.5h12M3 9h8M3 13.5h5"/></svg>task manager</div>
+      <div class="sb-ni" onclick="go('s-budget');closeSb()"><svg viewBox="0 0 18 18"><rect x="2" y="4" width="14" height="10" rx="1.5"/><path d="M2 7.5h14M6 7.5v7"/></svg>budget</div>
+      <div class="sb-ni" onclick="go('s-team');closeSb()"><svg viewBox="0 0 18 18"><circle cx="6" cy="6" r="3"/><path d="M2 15c0-2.2 1.8-4 4-4s4 1.8 4 4"/><circle cx="13" cy="7" r="2"/><path d="M16 15c0-1.7-1-3-2.5-3.5"/></svg>my team</div>
+      <div class="sb-ni" onclick="go('s-files');closeSb()"><svg viewBox="0 0 18 18"><path d="M10 2H5a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7z"/><path d="M10 2v5h5"/></svg>files</div>
+    </div>
+    <div class="sb-foot">
+      <div class="sb-foot-item">⚙ settings</div>
+      <div class="sb-foot-item">🔒 privacy & security</div>
+    </div>
+  </div>
+</div>
+
+<!-- OB 1 -->
+<div class="screen ob-screen active" id="s-ob1">
+  <div class="ob-top">
+    <div class="ob-progress"><div class="ob-prog-dot act"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div></div>
+    <div class="ob-q">who are you on this journey?</div>
+    <div class="ob-hint">we'll build your exact roadmap around your path.</div>
+    <div class="ob-opts">
+      <div class="ob-opt sel" id="w0" onclick="so('w',0,4)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">solo dad</div><div class="ob-desc">using a surrogate + egg donor</div></div></div>
+      <div class="ob-opt" id="w1" onclick="so('w',1,4)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">solo mom</div><div class="ob-desc">using a sperm donor or surrogate</div></div></div>
+      <div class="ob-opt" id="w2" onclick="so('w',2,4)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">same-sex couple</div><div class="ob-desc">going through this together</div></div></div>
+      <div class="ob-opt" id="w3" onclick="so('w',3,4)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">couple</div><div class="ob-desc">fertility challenges on the journey</div></div></div>
+    </div>
+  </div>
+  <div class="ob-bot"><button class="ob-btn" onclick="go('s-ob2')">continue →</button></div>
+</div>
+
+<!-- OB 2 -->
+<div class="screen ob-screen" id="s-ob2">
+  <div class="ob-top">
+    <div class="ob-progress"><div class="ob-prog-dot done"></div><div class="ob-prog-dot act"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div></div>
+    <div class="ob-back" onclick="go('s-ob1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11L5 7l4-4"/></svg></div>
+    <div class="ob-q">where are you based?</div>
+    <div class="ob-hint">shapes your legal options, clinics, and costs.</div>
+    <div class="ob-opts">
+      <div class="ob-opt sel" id="c0" onclick="so('c',0,3)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">israel 🇮🇱</div><div class="ob-desc">surrogacy legal for single men since 2022</div></div></div>
+      <div class="ob-opt" id="c1" onclick="so('c',1,3)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">united states 🇺🇸</div><div class="ob-desc">most established surrogacy market globally</div></div></div>
+      <div class="ob-opt" id="c2" onclick="so('c',2,3)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">both countries</div><div class="ob-desc">clinic in israel, agency or surrogate in usa</div></div></div>
+    </div>
+  </div>
+  <div class="ob-bot"><button class="ob-btn" onclick="go('s-ob3')">continue →</button></div>
+</div>
+
+<!-- OB 3 -->
+<div class="screen ob-screen" id="s-ob3">
+  <div class="ob-top">
+    <div class="ob-progress"><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot act"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div></div>
+    <div class="ob-back" onclick="go('s-ob2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11L5 7l4-4"/></svg></div>
+    <div class="ob-q">where are you in the process?</div>
+    <div class="ob-hint">be honest — we start from exactly here.</div>
+    <div class="ob-opts">
+      <div class="ob-opt" id="s0" onclick="so('s',0,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">just researching</div><div class="ob-desc">haven't started anything yet</div></div></div>
+      <div class="ob-opt sel" id="s1" onclick="so('s',1,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">fertility testing</div><div class="ob-desc">sperm analysis, blood tests, screening</div></div></div>
+      <div class="ob-opt" id="s2" onclick="so('s',2,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">egg donor & embryo creation</div><div class="ob-desc">donor selected or embryos in progress</div></div></div>
+      <div class="ob-opt" id="s3" onclick="so('s',3,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">looking for a surrogate</div><div class="ob-desc">embryos frozen, ready for next step</div></div></div>
+      <div class="ob-opt" id="s4" onclick="so('s',4,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">surrogate matched or beyond</div><div class="ob-desc">transfer, pregnancy, or later</div></div></div>
+    </div>
+  </div>
+  <div class="ob-bot"><button class="ob-btn" onclick="go('s-ob4')">continue →</button></div>
+</div>
+
+<!-- OB 4 — FERTILITY SUB-STAGE -->
+<div class="screen ob-screen" id="s-ob4">
+  <div class="ob-top">
+    <div class="ob-progress"><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot act"></div><div class="ob-prog-dot"></div><div class="ob-prog-dot"></div></div>
+    <div class="ob-back" onclick="go('s-ob3')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11L5 7l4-4"/></svg></div>
+    <div class="ob-q">where exactly in fertility testing?</div>
+    <div class="ob-hint">this is where pave gets specific for you.</div>
+    <div class="ob-opts">
+      <div class="ob-opt sel" id="fs0" onclick="so('fs',0,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">haven't done any tests yet</div><div class="ob-desc">don't know where to start</div></div></div>
+      <div class="ob-opt" id="fs1" onclick="so('fs',1,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">did first test — results good</div><div class="ob-desc">ready to move forward</div></div></div>
+      <div class="ob-opt" id="fs2" onclick="so('fs',2,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">first test — results need work</div><div class="ob-desc">improving before re-test</div></div></div>
+      <div class="ob-opt" id="fs3" onclick="so('fs',3,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">sperm is frozen</div><div class="ob-desc">done testing, ready for egg donor</div></div></div>
+      <div class="ob-opt" id="fs4" onclick="so('fs',4,5)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">have all prerequisites</div><div class="ob-desc">blood tests + sti screening done</div></div></div>
+    </div>
+  </div>
+  <div class="ob-bot"><button class="ob-btn" onclick="go('s-ob5')">continue →</button></div>
+</div>
+
+<!-- OB 5 -->
+<div class="screen ob-screen" id="s-ob5">
+  <div class="ob-top">
+    <div class="ob-progress"><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot act"></div><div class="ob-prog-dot"></div></div>
+    <div class="ob-back" onclick="go('s-ob4')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11L5 7l4-4"/></svg></div>
+    <div class="ob-q">do you have a fertility clinic?</div>
+    <div class="ob-hint">you need one before or after your first test.</div>
+    <div class="ob-opts">
+      <div class="ob-opt sel" id="cl0" onclick="so('cl',0,3)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">yes — i have a clinic</div><div class="ob-desc">already working with one</div></div></div>
+      <div class="ob-opt" id="cl1" onclick="so('cl',1,3)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">not yet — still deciding</div><div class="ob-desc">pave recommends top clinics in israel</div></div></div>
+      <div class="ob-opt" id="cl2" onclick="so('cl',2,3)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">no — need help finding one</div><div class="ob-desc">i'll help you choose the right one</div></div></div>
+    </div>
+  </div>
+  <div class="ob-bot"><button class="ob-btn" onclick="go('s-ob6')">continue →</button></div>
+</div>
+
+<!-- OB 6 -->
+<div class="screen ob-screen" id="s-ob6">
+  <div class="ob-top">
+    <div class="ob-progress"><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot done"></div><div class="ob-prog-dot act"></div></div>
+    <div class="ob-back" onclick="go('s-ob5')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 11L5 7l4-4"/></svg></div>
+    <div class="ob-q">how well do you know the costs?</div>
+    <div class="ob-hint">surrogacy in israel costs $80k–$130k. pave tracks every shekel.</div>
+    <div class="ob-opts">
+      <div class="ob-opt" id="b0" onclick="so('b',0,4)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">no idea at all</div><div class="ob-desc">need full transparency from scratch</div></div></div>
+      <div class="ob-opt sel" id="b1" onclick="so('b',1,4)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">rough idea</div><div class="ob-desc">know it's expensive but not the breakdown</div></div></div>
+      <div class="ob-opt" id="b2" onclick="so('b',2,4)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">know the main costs</div><div class="ob-desc">want a tracker to stay organized</div></div></div>
+      <div class="ob-opt" id="b3" onclick="so('b',3,4)"><div class="ob-mk"><div class="ob-mk-dot"></div></div><div><div class="ob-lbl">i track everything</div><div class="ob-desc">need a better tool than spreadsheets</div></div></div>
+    </div>
+  </div>
+  <div class="ob-bot"><button class="ob-btn pu" onclick="go('s-reveal')">build my roadmap →</button></div>
+</div>
+
+<!-- REVEAL -->
+<div class="screen ob-screen" id="s-reveal">
+  <div class="reveal-inner">
+    <div class="rv-ico">p</div>
+    <div class="rv-title">your roadmap<br>is ready.</div>
+    <div class="rv-sub">built for solo dads in israel. starting from fertility testing.</div>
+    <div class="rv-phases">
+      <div class="rv-phase" style="border-color:var(--pm);background:var(--pl)"><div class="rp-dot act"></div><div><div class="rp-lbl">fertility testing</div><div class="rp-sub">tests · improve · prerequisites · freeze</div></div><div class="rp-badge rpb-act">you are here</div></div>
+      <div class="rv-phase"><div class="rp-dot soon"></div><div><div class="rp-lbl">egg donor & embryo creation</div><div class="rp-sub">agency · retrieval · pgt · freeze</div></div><div class="rp-badge rpb-soon">up next</div></div>
+      <div class="rv-phase"><div class="rp-dot soon"></div><div><div class="rp-lbl">surrogate search</div><div class="rp-sub">agency · profiles · match · legal</div></div><div class="rp-badge rpb-soon">phase 3</div></div>
+    </div>
+    <button class="ob-btn pu" style="width:100%" onclick="go('s-home')">let's go →</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="s-home">
+  <div class="app-nav">
+    <div class="burger" onclick="openSb()"><span></span><span></span><span></span></div>
+    <div class="app-logo">pave<span class="io">.io</span></div>
+    <div class="app-av">MO</div>
+  </div>
+  <div class="app-body">
+    <div class="home-greeting">what can i do<br>for <em>you today?</em></div>
+    <div class="stage-pill"><div class="stage-dot"></div>phase 1 · fertility testing</div>
+    <div class="ai-box">
+      <textarea class="ai-inp" id="home-inp" placeholder="ask anything about your surrogacy journey…" rows="2"></textarea>
+      <div class="ai-foot">
+        <div class="ai-icons">
+          <div class="ai-ico" onclick="go('s-fertility')" title="upload test"><svg viewBox="0 0 12 12"><path d="M6 1v8M3 6l3-3 3 3"/><path d="M1 10h10"/></svg></div>
+          <div class="ai-ico"><svg viewBox="0 0 12 12"><path d="M1 3.5h10M1 6h7M1 8.5h5"/></svg></div>
+          <div class="ai-ico"><svg viewBox="0 0 12 12"><rect x="1" y="1.5" width="10" height="9" rx="1.5"/><path d="M3.5 5h5M3.5 7h3"/></svg></div>
+        </div>
+        <button class="ai-snd" onclick="sendFromHome()"><svg viewBox="0 0 13 13"><path d="M11 6.5L1.5 2 3.5 6.5 1.5 11z"/></svg></button>
+      </div>
+    </div>
+    <div class="insight-banner" onclick="go('s-fertility')">
+      <div class="insight-ico"><svg viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5"/><path d="M6.5 4.5v3M6.5 9h.01"/></svg></div>
+      <div>
+        <div class="insight-lbl">pave insight</div>
+        <div class="insight-msg">upload your sperm test and i'll <strong>analyze your results</strong> and build a personalized 90-day improvement protocol.</div>
+        <div class="insight-action">upload test →</div>
+      </div>
+    </div>
+    <div class="sec-lbl">recommended actions</div>
+    <div class="action-grid">
+      <div class="action-pill" onclick="go('s-fertility')"><svg viewBox="0 0 14 14"><path d="M7 1v9M4 7l3-3 3 3"/><path d="M1 12h12"/></svg><span>upload sperm test</span></div>
+      <div class="action-pill" onclick="go('s-chat')"><svg viewBox="0 0 14 14"><circle cx="7" cy="5" r="3"/><path d="M2 13c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg><span>find a clinic</span></div>
+      <div class="action-pill" onclick="go('s-chat')"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5"/><path d="M5.5 7h.01M7 7h.01M8.5 7h.01"/></svg><span>ask ai agent</span></div>
+      <div class="action-pill" onclick="go('s-tasks')"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h7M2 10h5"/></svg><span>my tasks</span></div>
+      <div class="action-pill" onclick="go('s-chat')"><svg viewBox="0 0 14 14"><path d="M7 1l1.5 3.5 3.5.5-2.5 2.5.5 3.5L7 9.5 4 11l.5-3.5L2 5l3.5-.5z"/></svg><span>31 pavers like you</span></div>
+      <div class="action-pill" onclick="go('s-roadmap')"><svg viewBox="0 0 14 14"><path d="M2 10.5L4.5 6l3 2 3-5 2.5 2.5"/></svg><span>view roadmap</span></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab act" onclick="go('s-home')"><svg viewBox="0 0 20 20"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v8h4v-4h2v4h4V9"/></svg><div class="tab-lbl">home</div></div>
+    <div class="tab" onclick="go('s-roadmap')"><svg viewBox="0 0 20 20"><path d="M3 15L6 9l4 3 4-7 3 3"/></svg><div class="tab-lbl">roadmap</div></div>
+    <div class="tab" onclick="go('s-chat')"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M7 9.5h.01M10 9.5h.01M13 9.5h.01"/></svg><div class="tab-lbl">ai</div></div>
+    <div class="tab" onclick="go('s-budget')"><svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 8.5h16M6 8.5v8"/></svg><div class="tab-lbl">budget</div></div>
+    <div class="tab" onclick="go('s-team')"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.5"/><path d="M2 18c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="15" cy="7.5" r="2.5"/><path d="M18 18c0-2-1.5-3.5-3-4"/></svg><div class="tab-lbl">team</div></div>
+  </div>
+</div>
+
+<!-- FERTILITY STAGE -->
+<div class="screen" id="s-fertility">
+  <div class="sub-nav"><div class="back-btn" onclick="go('s-home')"><svg viewBox="0 0 15 15"><path d="M10 12L5 7.5l5-4.5"/></svg></div><div class="sub-ttl">fertility testing</div></div>
+  <div class="sub-body">
+    <div class="fert-header">
+      <div class="fh-badge">phase 1</div>
+      <div class="fh-title">fertility testing</div>
+      <div class="fh-sub">sperm analysis · blood tests · sti screening · freeze</div>
+      <div class="fh-progress"><div class="fh-dot done"></div><div class="fh-dot done"></div><div class="fh-dot"></div><div class="fh-dot"></div><div class="fh-dot"></div><div class="fh-dot"></div></div>
+    </div>
+    <div class="insight-banner" style="border-radius:12px;margin-bottom:11px">
+      <div class="insight-ico"><svg viewBox="0 0 13 13"><path d="M6.5 1C4 1 2 3 2 5.5c0 3.5 4.5 6.5 4.5 6.5s4.5-3 4.5-6.5C11 3 9 1 6.5 1z"/><circle cx="6.5" cy="5.5" r="1.5"/></svg></div>
+      <div>
+        <div class="insight-lbl">pave recommends</div>
+        <div class="insight-msg">upload your sperm test — i'll analyze every parameter and build your <strong>personal improvement protocol.</strong></div>
+        <div class="insight-action" onclick="analyzeTest()">upload now →</div>
+      </div>
+    </div>
+    <div class="upload-card" id="upload-card" onclick="analyzeTest()">
+      <div class="uc-ico"><svg viewBox="0 0 20 20" fill="none" stroke="var(--p)" stroke-width="1.5" stroke-linecap="round"><path d="M10 3v11M6 8l4-4 4 4"/><path d="M3 16h14"/></svg></div>
+      <div class="uc-title">upload sperm analysis</div>
+      <div class="uc-sub">photo or PDF · ichilov · hadassah · SDFC · any lab</div>
+      <div class="uc-badge">tap to upload & analyze</div>
+    </div>
+    <div id="analyzing-state" style="display:none;text-align:center;padding:18px;background:var(--cd);border-radius:12px;margin-bottom:11px">
+      <div style="font-size:12px;color:var(--wg);margin-bottom:7px">analyzing your test…</div>
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>
+    <div class="analysis-result" id="analysis-result">
+      <div class="ar-header"><div class="ar-title">your results — test 1</div><div class="ar-date">oct 1, 2024 · ichilov</div></div>
+      <div class="ar-params">
+        <div class="ar-param good"><span class="ar-param-name">volume</span><span class="ar-param-val">2.80 ml</span><span class="ar-param-ref">≥1.5</span><span class="ar-param-status">✅</span></div>
+        <div class="ar-param warn"><span class="ar-param-name">concentration</span><span class="ar-param-val">14 M/ml</span><span class="ar-param-ref">≥15</span><span class="ar-param-status">🟡</span></div>
+        <div class="ar-param warn"><span class="ar-param-name">motility</span><span class="ar-param-val">40%</span><span class="ar-param-ref">≥40%</span><span class="ar-param-status">🟡</span></div>
+        <div class="ar-param bad"><span class="ar-param-name">morphology</span><span class="ar-param-val">2%</span><span class="ar-param-ref">≥4%</span><span class="ar-param-status">🔴</span></div>
+        <div class="ar-param good"><span class="ar-param-name">vitality</span><span class="ar-param-val">60%</span><span class="ar-param-ref">≥58%</span><span class="ar-param-status">✅</span></div>
+      </div>
+      <div class="ar-insight">
+        <div class="ar-insight-lbl">pave analysis</div>
+        <div class="ar-insight-text">most parameters are borderline. <strong>the main focus: morphology at 2%</strong> — normal is above 4%. high viscosity also noted. the good news: this is very improvable in 90 days with the right protocol.</div>
+      </div>
+      <button class="ar-protocol-btn" onclick="showProtocol()">see my 90-day protocol →</button>
+    </div>
+    <div class="protocol-card" id="protocol-card">
+      <div class="proto-header"><div class="proto-title">your 90-day protocol</div><div class="proto-days">90 days</div></div>
+      <div class="proto-sec">
+        <div class="proto-sec-lbl">supplements — start today</div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">zinc 30mg daily</div><div class="pt-why">directly linked to morphology improvement</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">CoQ10 400mg daily</div><div class="pt-why">proven for motility</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">vitamin C 1000mg daily</div><div class="pt-why">antioxidant — morphology + viscosity</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">omega-3 fish oil daily</div><div class="pt-why">motility + morphology support</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">folic acid 400mcg daily</div><div class="pt-why">reduces DNA fragmentation</div></div></div>
+      </div>
+      <div class="proto-sec">
+        <div class="proto-sec-lbl">heat reduction — critical</div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">no sauna or steam room</div><div class="pt-why">heat is #1 enemy of morphology</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">showers only — no hot baths</div><div class="pt-why">keep temperature low at all times</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">loose underwear / boxers</div><div class="pt-why">reduces heat and pressure</div></div></div>
+      </div>
+      <div class="proto-sec">
+        <div class="proto-sec-lbl">lifestyle</div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">exercise 3–4x per week</div><div class="pt-why">improves testosterone + sperm quality</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">sleep 7–8 hours minimum</div><div class="pt-why">sperm is produced during deep sleep</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">reduce alcohol to zero</div><div class="pt-why">directly impacts morphology</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">drink 2.5–3L water daily</div><div class="pt-why">helps with viscosity (yours was high)</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">walnuts daily</div><div class="pt-why">proven in studies to improve motility</div></div></div>
+      </div>
+      <div class="proto-sec">
+        <div class="proto-sec-lbl">re-test plan</div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">abstinence 2 days before test</div><div class="pt-why">shorter abstinence often improves morphology</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">book re-test at day 90</div><div class="pt-why">one full sperm cycle = 72 days + buffer</div></div></div>
+        <div class="proto-task" onclick="ptT(this)"><div class="pt-chk"></div><div><div class="pt-text">use sterile collection kit</div><div class="pt-why">saliva damages sperm — always use proper kit</div></div></div>
+      </div>
+      <div style="background:var(--gl);border-radius:9px;padding:11px;margin-top:4px;cursor:pointer" onclick="showComp()">
+        <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gd);font-weight:500;margin-bottom:2px">have your second test?</div>
+        <div style="font-size:12px;color:var(--gd)">upload test 2 → see your improvement →</div>
+      </div>
+    </div>
+    <div class="comparison-card" id="comp-card">
+      <div class="comp-title">your transformation</div>
+      <div class="comp-row"><span class="comp-param">concentration</span><span class="comp-t1">14M/ml</span><span class="comp-arrow">→</span><span class="comp-t2 up">35M/ml</span><span class="comp-change">+150%</span></div>
+      <div class="comp-row"><span class="comp-param">motility</span><span class="comp-t1">40%</span><span class="comp-arrow">→</span><span class="comp-t2 up">59%</span><span class="comp-change">+47%</span></div>
+      <div class="comp-row"><span class="comp-param">total motile count</span><span class="comp-t1">15.68M</span><span class="comp-arrow">→</span><span class="comp-t2 up">57.82M</span><span class="comp-change">+269%</span></div>
+      <div class="comp-row"><span class="comp-param">morphology</span><span class="comp-t1">2%</span><span class="comp-arrow">→</span><span class="comp-t2 up">8%</span><span class="comp-change">+300%</span></div>
+      <div class="comp-banner">
+        <div class="comp-banner-title">sperm frozen ✓</div>
+        <div class="comp-banner-sub">4 vials · san diego · jan 14, 2025 · ready for egg donor phase</div>
+      </div>
+    </div>
+    <div class="tasks-section">
+      <div class="ts-header"><div class="ts-title">fertility tasks</div><div class="ts-count" onclick="addTask(this.closest('.tasks-section'))" style="color:var(--p);cursor:pointer">+ add task</div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk done"></div><div><div class="tk-text done">first sperm analysis at ichilov</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk done"></div><div><div class="tk-text done">start 90-day improvement protocol</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk done"></div><div><div class="tk-text done">upload test to pave</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk cur"></div><div><div class="tk-text">blood tests</div><div class="tk-sub">required before sperm freeze</div></div><div class="tk-urgent">required</div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk"></div><div><div class="tk-text">sti screening (מחלות מין)</div><div class="tk-sub">required before sperm freeze</div></div><div class="tk-urgent">required</div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk"></div><div><div class="tk-text">re-test at day 90</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk"></div><div><div class="tk-text">freeze sperm</div><div class="tk-sub">after blood tests + sti clear</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk"></div><div><div class="tk-text">choose sperm storage facility</div><div class="tk-sub">israel or usa · compare yearly costs</div></div></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab" onclick="go('s-home')"><svg viewBox="0 0 20 20"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v8h4v-4h2v4h4V9"/></svg><div class="tab-lbl">home</div></div>
+    <div class="tab act"><svg viewBox="0 0 20 20"><path d="M3 15L6 9l4 3 4-7 3 3"/></svg><div class="tab-lbl">fertility</div></div>
+    <div class="tab" onclick="go('s-chat')"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M7 9.5h.01M10 9.5h.01M13 9.5h.01"/></svg><div class="tab-lbl">ai</div></div>
+    <div class="tab" onclick="go('s-budget')"><svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 8.5h16M6 8.5v8"/></svg><div class="tab-lbl">budget</div></div>
+    <div class="tab" onclick="go('s-team')"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.5"/><path d="M2 18c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="15" cy="7.5" r="2.5"/><path d="M18 18c0-2-1.5-3.5-3-4"/></svg><div class="tab-lbl">team</div></div>
+  </div>
+</div>
+
+<!-- TASK MANAGER -->
+<div class="screen" id="s-tasks">
+  <div class="sub-nav"><div class="back-btn" onclick="go('s-home')"><svg viewBox="0 0 15 15"><path d="M10 12L5 7.5l5-4.5"/></svg></div><div class="sub-ttl">task manager</div></div>
+  <div class="sub-body">
+    <div class="tasks-section">
+      <div class="ts-header"><div class="ts-title">urgent this week</div><div class="ts-count" onclick="addTask(this.closest('.tasks-section'))" style="color:var(--p);cursor:pointer">+ add task</div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk cur"></div><div><div class="tk-text">blood tests</div><div class="tk-sub">required before sperm freeze</div></div><div class="tk-urgent">urgent</div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk"></div><div><div class="tk-text">sti screening (מחלות מין)</div><div class="tk-sub">required before sperm freeze</div></div><div class="tk-urgent">urgent</div></div>
+    </div>
+    <div class="tasks-section">
+      <div class="ts-header"><div class="ts-title">fertility testing</div><div class="ts-count" onclick="addTask(this.closest('.tasks-section'))" style="color:var(--p);cursor:pointer">+ add task</div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk done"></div><div><div class="tk-text done">first sperm test at ichilov</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk done"></div><div><div class="tk-text done">start improvement protocol</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk done"></div><div><div class="tk-text done">upload test to pave</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk"></div><div><div class="tk-text">re-test at day 90</div></div></div>
+      <div class="task-item" onclick="tt(this)"><div class="tk-chk"></div><div><div class="tk-text">freeze sperm</div></div></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab" onclick="go('s-home')"><svg viewBox="0 0 20 20"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v8h4v-4h2v4h4V9"/></svg><div class="tab-lbl">home</div></div>
+    <div class="tab" onclick="go('s-roadmap')"><svg viewBox="0 0 20 20"><path d="M3 15L6 9l4 3 4-7 3 3"/></svg><div class="tab-lbl">roadmap</div></div>
+    <div class="tab" onclick="go('s-chat')"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M7 9.5h.01M10 9.5h.01M13 9.5h.01"/></svg><div class="tab-lbl">ai</div></div>
+    <div class="tab act"><svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 8.5h16M6 8.5v8"/></svg><div class="tab-lbl">tasks</div></div>
+    <div class="tab" onclick="go('s-team')"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.5"/><path d="M2 18c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="15" cy="7.5" r="2.5"/><path d="M18 18c0-2-1.5-3.5-3-4"/></svg><div class="tab-lbl">team</div></div>
+  </div>
+</div>
+
+<!-- ROADMAP -->
+<div class="screen" id="s-roadmap">
+  <div class="sub-nav"><div class="back-btn" onclick="go('s-home')"><svg viewBox="0 0 15 15"><path d="M10 12L5 7.5l5-4.5"/></svg></div><div class="sub-ttl">roadmap</div></div>
+  <div class="sub-body">
+    <div class="journey-card">
+      <div class="jc-top"><div class="jc-lbl">surrogacy journey</div><div class="jc-ph">phase 1 of 6</div></div>
+      <div class="jc-bar"><div class="jc-bar-fill"></div></div>
+      <div class="jc-stats"><div class="jc-stat"><strong>2 mo</strong> in</div><div class="jc-stat"><strong>~18 mo</strong> left</div><div class="jc-stat"><strong>$3.2k</strong> spent</div></div>
+    </div>
+    <div class="phase-item">
+      <div class="ph-head is-act is-open" onclick="tp('p1')"><div class="ph-num pn-act">1</div><div class="ph-info"><div class="ph-name">fertility testing</div><div class="ph-meta">in progress · blood tests needed</div></div><div class="ph-badge phb-act">you are here</div><div class="ph-chev open" id="chv1">▾</div></div>
+      <div class="ph-body is-act open" id="bd1">
+        <div class="task-list">
+          <div class="task"><div class="chk done"></div><div><div class="task-txt done">first sperm analysis</div></div></div>
+          <div class="task"><div class="chk done"></div><div><div class="task-txt done">90-day protocol started</div></div></div>
+          <div class="task" onclick="tt(this)"><div class="chk cur"></div><div><div class="task-txt">blood tests</div><div class="task-sub-txt">required before freeze</div></div></div>
+          <div class="task" onclick="tt(this)"><div class="chk"></div><div><div class="task-txt">sti screening</div><div class="task-sub-txt">required before freeze</div></div></div>
+          <div class="task" onclick="tt(this)"><div class="chk"></div><div><div class="task-txt">re-test at day 90</div></div></div>
+          <div class="task" onclick="tt(this)"><div class="chk"></div><div><div class="task-txt">freeze sperm</div></div></div>
+        </div>
+        <div class="ph-cost"><span class="ph-cost-lbl">phase estimate</span><span class="ph-cost-val">$3,000–$6,000</span></div>
+        <div class="peer-note"><div class="pdot"></div>31 solo dads at this stage in israel right now</div>
+      </div>
+    </div>
+    <div class="phase-item">
+      <div class="ph-head" onclick="tp('p2')"><div class="ph-num pn-soon">2</div><div class="ph-info"><div class="ph-name">egg donor & embryo creation</div><div class="ph-meta">after sperm is frozen</div></div><div class="ph-badge phb-soon">up next</div><div class="ph-chev" id="chv2">▾</div></div>
+      <div class="ph-body" id="bd2">
+        <div class="task-list"><div class="task"><div class="chk"></div><div><div class="task-txt">choose egg donor agency</div></div></div><div class="task"><div class="chk"></div><div><div class="task-txt">select egg donor profile</div></div></div><div class="task"><div class="chk"></div><div><div class="task-txt">legal contracts</div></div></div><div class="task"><div class="chk"></div><div><div class="task-txt">egg retrieval & fertilization</div></div></div><div class="task"><div class="chk"></div><div><div class="task-txt">pgt genetic testing</div></div></div><div class="task"><div class="chk"></div><div><div class="task-txt">embryos frozen</div></div></div></div>
+        <div class="ph-cost"><span class="ph-cost-lbl">phase estimate</span><span class="ph-cost-val">$25,000–$45,000</span></div>
+        <div class="peer-note"><div class="pdot"></div>pave recommends 4 egg donor agencies for solo dads in israel</div>
+      </div>
+    </div>
+    <div class="phase-item">
+      <div class="ph-head" onclick="tp('p3')"><div class="ph-num pn-soon">3</div><div class="ph-info"><div class="ph-name">surrogate search</div><div class="ph-meta">after embryos are frozen</div></div><div class="ph-badge phb-soon">phase 3</div><div class="ph-chev" id="chv3">▾</div></div>
+      <div class="ph-body" id="bd3">
+        <div class="task-list"><div class="task"><div class="chk"></div><div><div class="task-txt">choose surrogacy agency</div></div></div><div class="task"><div class="chk"></div><div><div class="task-txt">review surrogate profiles</div></div></div><div class="task"><div class="chk"></div><div><div class="task-txt">match meeting</div></div></div><div class="task"><div class="chk"></div><div><div class="task-txt">legal contracts</div></div></div></div>
+        <div class="ph-cost"><span class="ph-cost-lbl">phase estimate</span><span class="ph-cost-val">$15,000–$25,000</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab" onclick="go('s-home')"><svg viewBox="0 0 20 20"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v8h4v-4h2v4h4V9"/></svg><div class="tab-lbl">home</div></div>
+    <div class="tab act"><svg viewBox="0 0 20 20"><path d="M3 15L6 9l4 3 4-7 3 3"/></svg><div class="tab-lbl">roadmap</div></div>
+    <div class="tab" onclick="go('s-chat')"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M7 9.5h.01M10 9.5h.01M13 9.5h.01"/></svg><div class="tab-lbl">ai</div></div>
+    <div class="tab" onclick="go('s-budget')"><svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 8.5h16M6 8.5v8"/></svg><div class="tab-lbl">budget</div></div>
+    <div class="tab" onclick="go('s-team')"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.5"/><path d="M2 18c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="15" cy="7.5" r="2.5"/><path d="M18 18c0-2-1.5-3.5-3-4"/></svg><div class="tab-lbl">team</div></div>
+  </div>
+</div>
+
+<!-- AI CHAT -->
+<div class="screen" id="s-chat">
+  <div class="sub-nav"><div class="back-btn" onclick="go('s-home')"><svg viewBox="0 0 15 15"><path d="M10 12L5 7.5l5-4.5"/></svg></div><div class="sub-ttl">ai agent</div></div>
+  <div class="chat-msgs" id="chat-msgs">
+    <div class="msg"><div class="msg-av mav-p">p</div><div class="msg-bub">hi mor — i know your journey. fertility testing in israel, first test showed low morphology (2%), working on improving. what can i help with?</div></div>
+  </div>
+  <div class="chat-bot">
+    <input class="chat-inp" id="chat-in" placeholder="ask anything…" onkeydown="sm(event)"/>
+    <button class="chat-snd" onclick="sm({key:'Enter'})"><svg viewBox="0 0 13 13"><path d="M11 6.5L1.5 2 3.5 6.5 1.5 11z"/></svg></button>
+  </div>
+</div>
+
+<!-- BUDGET -->
+<div class="screen" id="s-budget">
+  <div class="sub-nav"><div class="back-btn" onclick="go('s-home')"><svg viewBox="0 0 15 15"><path d="M10 12L5 7.5l5-4.5"/></svg></div><div class="sub-ttl">budget</div></div>
+  <div class="sub-body">
+    <div class="bud-stats">
+      <div class="bud-stat"><div class="bud-num p">$3.2k</div><div class="bud-lbl">spent</div></div>
+      <div class="bud-stat"><div class="bud-num">$110k</div><div class="bud-lbl">remaining</div></div>
+      <div class="bud-stat"><div class="bud-num">$113k</div><div class="bud-lbl">est. total</div></div>
+    </div>
+    <div class="bar-card">
+      <div class="sec-lbl" style="margin-bottom:10px">cost by phase</div>
+      <div class="bar-row"><div class="brl">fertility testing</div><div class="brt"><div class="brf brf-s" style="width:55%"></div></div><div class="brv">$3,200</div></div>
+      <div class="bar-row"><div class="brl">egg donor</div><div class="brt"><div class="brf brf-e" style="width:88%"></div></div><div class="brv">est. $35k</div></div>
+      <div class="bar-row"><div class="brl">surrogate</div><div class="brt"><div class="brf brf-e" style="width:50%"></div></div><div class="brv">est. $20k</div></div>
+      <div class="bar-row"><div class="brl">legal</div><div class="brt"><div class="brf brf-e" style="width:28%"></div></div><div class="brv">est. $11k</div></div>
+      <div class="bar-row"><div class="brl">transfer</div><div class="brt"><div class="brf brf-e" style="width:100%"></div></div><div class="brv">est. $44k</div></div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab" onclick="go('s-home')"><svg viewBox="0 0 20 20"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v8h4v-4h2v4h4V9"/></svg><div class="tab-lbl">home</div></div>
+    <div class="tab" onclick="go('s-roadmap')"><svg viewBox="0 0 20 20"><path d="M3 15L6 9l4 3 4-7 3 3"/></svg><div class="tab-lbl">roadmap</div></div>
+    <div class="tab" onclick="go('s-chat')"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M7 9.5h.01M10 9.5h.01M13 9.5h.01"/></svg><div class="tab-lbl">ai</div></div>
+    <div class="tab act"><svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 8.5h16M6 8.5v8"/></svg><div class="tab-lbl">budget</div></div>
+    <div class="tab" onclick="go('s-team')"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.5"/><path d="M2 18c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="15" cy="7.5" r="2.5"/><path d="M18 18c0-2-1.5-3.5-3-4"/></svg><div class="tab-lbl">team</div></div>
+  </div>
+</div>
+
+<!-- MY TEAM -->
+<div class="screen" id="s-team">
+  <div class="sub-nav"><div class="back-btn" onclick="go('s-home')"><svg viewBox="0 0 15 15"><path d="M10 12L5 7.5l5-4.5"/></svg></div><div class="sub-ttl">my team</div></div>
+  <div class="sub-body">
+    <div class="tm-section">
+      <div class="tm-hdr"><div class="tm-title">clinic</div><div class="tm-add">+ add</div></div>
+      <div class="tm-list">
+        <div class="person"><div class="p-av av-bl">DR<div class="p-online"></div></div><div><div class="p-name">dr. rachel cohen</div><div class="p-role">reproductive endocrinologist · ichilov</div></div><div class="p-spoke">today</div></div>
+        <div class="person"><div class="p-av av-pu">SC</div><div><div class="p-name">sarah chen</div><div class="p-role">patient coordinator</div></div><div class="p-spoke">yesterday</div></div>
+      </div>
+    </div>
+    <div class="tm-section">
+      <div class="tm-hdr"><div class="tm-title">my circle</div><div class="tm-add">+ add</div></div>
+      <div class="tm-list">
+        <div class="person"><div class="p-av av-gr">DA<div class="p-online"></div></div><div><div class="p-name">dana ashkenazi</div><div class="p-role">best friend</div></div><div class="p-spoke">today</div></div>
+        <div class="person"><div class="p-av av-am">YK</div><div><div class="p-name">yoav katz</div><div class="p-role">surrogacy lawyer</div></div><div class="p-spoke">4 days</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab" onclick="go('s-home')"><svg viewBox="0 0 20 20"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v8h4v-4h2v4h4V9"/></svg><div class="tab-lbl">home</div></div>
+    <div class="tab" onclick="go('s-roadmap')"><svg viewBox="0 0 20 20"><path d="M3 15L6 9l4 3 4-7 3 3"/></svg><div class="tab-lbl">roadmap</div></div>
+    <div class="tab" onclick="go('s-chat')"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M7 9.5h.01M10 9.5h.01M13 9.5h.01"/></svg><div class="tab-lbl">ai</div></div>
+    <div class="tab" onclick="go('s-budget')"><svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 8.5h16M6 8.5v8"/></svg><div class="tab-lbl">budget</div></div>
+    <div class="tab act"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.5"/><path d="M2 18c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="15" cy="7.5" r="2.5"/><path d="M18 18c0-2-1.5-3.5-3-4"/></svg><div class="tab-lbl">team</div></div>
+  </div>
+</div>
+
+<script>
+function go(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});var e=document.getElementById(id);if(e)e.classList.add('active')}
+function openSb(){document.getElementById('sidebar').classList.add('open')}
+function closeSb(){document.getElementById('sidebar').classList.remove('open')}
+function so(g,i,n){for(var j=0;j<n;j++){var e=document.getElementById(g+j);if(e)e.classList.remove('sel')}var t=document.getElementById(g+i);if(t)t.classList.add('sel')}
+function tp(id){var n=id.slice(1);var b=document.getElementById('bd'+n);var c=document.getElementById('chv'+n);if(!b)return;var o=b.classList.contains('open');b.classList.toggle('open',!o);if(c)c.classList.toggle('open',!o);var h=b.previousElementSibling;if(h)h.classList.toggle('is-open',!o)}
+function tt(el){
+  if(el.classList.contains('editing'))return;
+  var c=el.querySelector('.tk-chk,.chk');var t=el.querySelector('.tk-text,.task-txt');
+  if(!c)return;var d=c.classList.contains('done');
+  c.classList.toggle('done',!d);if(!d)c.classList.remove('cur');else c.classList.add('cur');
+  if(t)t.classList.toggle('done',!d);
+}
+function swipeTask(el){
+  el.classList.toggle('swiped');
+}
+function editTask(el){
+  var item=el.closest('.task-item');
+  var txt=item.querySelector('.tk-text');
+  var inp=item.querySelector('.task-edit-inp');
+  if(!txt||!inp)return;
+  item.classList.remove('swiped');
+  item.classList.add('editing');
+  inp.value=txt.textContent.trim();
+  inp.style.display='block';
+  inp.focus();
+  inp.onblur=function(){
+    txt.textContent=inp.value||txt.textContent;
+    item.classList.remove('editing');
+    inp.style.display='none';
+  };
+  inp.onkeydown=function(e){if(e.key==='Enter'){inp.blur()}};
+}
+function deleteTask(el){
+  var item=el.closest('.task-item');
+  item.style.transform='translateX(100%)';
+  item.style.opacity='0';
+  item.style.transition='all 0.25s';
+  setTimeout(function(){item.remove()},250);
+}
+function addTask(section){
+  // Remove any existing add input
+  var existing=section.querySelector('.add-task-inp');
+  if(existing){existing.remove()}
+  var inp=document.createElement('input');
+  inp.className='add-task-inp';
+  inp.placeholder='type task and press enter…';
+  inp.style.cssText='display:block;width:100%;border:none;background:var(--pl);border-radius:8px;padding:9px 11px;font-family:var(--sans);font-size:12px;color:var(--nb);outline:none;margin-top:6px;border:1px solid var(--pm)';
+  section.appendChild(inp);
+  inp.focus();
+  function commit(){
+    var val=inp.value.trim();
+    if(val){
+      var item=document.createElement('div');
+      item.className='task-item';
+      item.onclick=function(){tt(item)};
+      item.innerHTML='<div class="tk-chk"></div><div><div class="tk-text">'+val+'</div></div><div class="task-actions"><div class="ta-edit" onclick="event.stopPropagation();editTask(this)">✏️</div><div class="ta-del" onclick="event.stopPropagation();deleteTask(this)">🗑</div></div><input class="task-edit-inp" style="display:none"/>';
+      section.insertBefore(item,inp);
+      addSwipe(item);
+    }
+    inp.remove();
+  }
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter'){commit()}if(e.key==='Escape'){inp.remove()}});
+  inp.addEventListener('blur',function(){setTimeout(commit,150)});
+}
+function addSwipe(el){
+  var startX=0;
+  el.addEventListener('touchstart',function(e){startX=e.touches[0].clientX},{ passive:true});
+  el.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-startX;
+    if(dx<-50)el.classList.add('swiped');
+    else if(dx>50)el.classList.remove('swiped');
+  },{ passive:true});
+}
+// Init swipe on all existing task items
+document.querySelectorAll('.task-item').forEach(function(el){addSwipe(el)});
+function ptT(el){var c=el.querySelector('.pt-chk');var t=el.querySelector('.pt-text');if(!c)return;var d=c.classList.contains('done');c.classList.toggle('done',!d);if(t)t.classList.toggle('done',!d)}
+function analyzeTest(){
+  document.getElementById('upload-card').style.display='none';
+  document.getElementById('analyzing-state').style.display='block';
+  setTimeout(function(){
+    document.getElementById('analyzing-state').style.display='none';
+    document.getElementById('analysis-result').classList.add('show');
+    document.getElementById('analysis-result').scrollIntoView({behavior:'smooth',block:'start'});
+  },2200);
+}
+function showProtocol(){
+  document.getElementById('protocol-card').classList.add('show');
+  setTimeout(function(){document.getElementById('protocol-card').scrollIntoView({behavior:'smooth',block:'start'})},100);
+}
+function showComp(){
+  document.getElementById('comp-card').classList.add('show');
+  setTimeout(function(){document.getElementById('comp-card').scrollIntoView({behavior:'smooth',block:'start'})},100);
+}
+function sendFromHome(){
+  var v=document.getElementById('home-inp').value.trim();
+  go('s-chat');
+  if(v){
+    document.getElementById('home-inp').value='';
+    setTimeout(function(){
+      document.getElementById('chat-in').value=v;
+      sm({key:'Enter'});
+    },300);
+  }
+}
+function sm(e){
+  if(e.key!=='Enter')return;
+  var i=document.getElementById('chat-in'),v=i.value.trim();if(!v)return;
+  var m=document.getElementById('chat-msgs');
+  m.innerHTML+='<div class="msg usr"><div class="msg-av mav-u">M</div><div class="msg-bub usr">'+v+'</div></div>';
+  i.value='';m.scrollTop=m.scrollHeight;
+  var r={
+    'clinic':'for solo dads in israel, ichilov (tel aviv), hadassah (jerusalem), and assuta are the top options. ichilov has the most experience with solo dads — dr. cohen there has worked with 3 pavers on pave.',
+    'morphology':'morphology measures sperm shape. below 4% is abnormal by WHO standards. the good news: it\'s the most improvable parameter. zinc, heat reduction, and 90 days of protocol can double or triple it — you proved it yourself.',
+    'freeze':'before freezing: blood tests + sti screening (מחלות מין) must both be clear. then freeze 4-6 vials. storage costs ~$500-800/year in israel. some pavers freeze abroad like you did at SDFC in san diego for better quality standards.',
+    'sauna':'correct — heat is the #1 enemy of sperm quality. no sauna, hot baths, steam room for the full 90 days. even a laptop on your lap matters. your morphology jump from 2% to 8% is largely because you eliminated heat.',
+    'default':'based on your journey — fertility testing in israel, improving after first test — the most important next steps are completing blood tests and sti screening before your re-test. want me to go deeper on any specific question?'
+  };
+  var vl=v.toLowerCase();
+  var reply=r.default;
+  if(vl.includes('clinic')||vl.includes('hospital'))reply=r.clinic;
+  else if(vl.includes('morphology')||vl.includes('shape'))reply=r.morphology;
+  else if(vl.includes('freeze')||vl.includes('storage'))reply=r.freeze;
+  else if(vl.includes('sauna')||vl.includes('heat'))reply=r.sauna;
+  setTimeout(function(){
+    m.innerHTML+='<div class="msg"><div class="msg-av mav-p">p</div><div class="msg-bub">'+reply+'</div></div>';
+    m.scrollTop=m.scrollHeight;
+  },800);
+}
+</script>
+
+<!-- FILES -->
+<div class="screen" id="s-files">
+  <div class="sub-nav"><div class="back-btn" onclick="go('s-home')"><svg viewBox="0 0 15 15"><path d="M10 12L5 7.5l5-4.5"/></svg></div><div class="sub-ttl">files</div></div>
+  <div class="sub-body">
+    <div class="upload-area" onclick="">
+      <div class="upload-area-ico">📎</div>
+      <div class="upload-area-lbl">upload a file</div>
+      <div class="upload-area-sub">sperm test · blood results · legal docs · any file</div>
+    </div>
+    <div class="sec-lbl">recent files</div>
+    <div class="file-item"><div class="fi-ico fi-pdf">PDF</div><div><div class="fi-name">sperm analysis — ichilov oct 2024.pdf</div><div class="fi-meta">uploaded oct 2 · 0.8mb</div></div><div class="fi-badge done">analyzed</div></div>
+    <div class="file-item"><div class="fi-ico fi-pdf">PDF</div><div><div class="fi-name">sperm analysis — SDFC jan 2025.pdf</div><div class="fi-meta">uploaded jan 15 · 1.1mb</div></div><div class="fi-badge done">analyzed</div></div>
+    <div class="file-item"><div class="fi-ico fi-doc">DOC</div><div><div class="fi-name">egg donor contract — signed.pdf</div><div class="fi-meta">uploaded apr 2 · 2.4mb</div></div><div class="fi-badge done">signed</div></div>
+    <div class="file-item"><div class="fi-ico fi-img">IMG</div><div><div class="fi-name">blood test results.jpg</div><div class="fi-meta">uploaded mar 10 · 0.4mb</div></div><div class="fi-badge new">review</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab" onclick="go('s-home')"><svg viewBox="0 0 20 20"><path d="M3 10.5L10 4l7 6.5"/><path d="M5 9v8h4v-4h2v4h4V9"/></svg><div class="tab-lbl">home</div></div>
+    <div class="tab" onclick="go('s-roadmap')"><svg viewBox="0 0 20 20"><path d="M3 15L6 9l4 3 4-7 3 3"/></svg><div class="tab-lbl">roadmap</div></div>
+    <div class="tab" onclick="go('s-chat')"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M7 9.5h.01M10 9.5h.01M13 9.5h.01"/></svg><div class="tab-lbl">ai</div></div>
+    <div class="tab" onclick="go('s-budget')"><svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="2"/><path d="M2 8.5h16M6 8.5v8"/></svg><div class="tab-lbl">budget</div></div>
+    <div class="tab" onclick="go('s-team')"><svg viewBox="0 0 20 20"><circle cx="7" cy="7" r="3.5"/><path d="M2 18c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="15" cy="7.5" r="2.5"/><path d="M18 18c0-2-1.5-3.5-3-4"/></svg><div class="tab-lbl">team</div></div>
+  </div>
+</div>
+</body>
+</html>
